@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	tools:context=".MainActivity"
+	android:shrinkColumns="*">
+
+	<TableRow>
+
+		<TextView
+			android:text="Text 1"
+			android:textSize="30sp" />
+
+		<TextView
+			android:text="Text 2"
+			android:textSize="30sp" />
+	</TableRow>
+
+	<TableRow
+		android:gravity="center"
+		android:layout_margin="15dp">
+
+		<Button
+			android:layout_span="2"
+			android:text="BUTTON1"
+			android:textSize="25sp" />
+
+	</TableRow>
+
+	<TableRow android:gravity="center">
+
+		<Button
+			android:layout_span="2"
+			android:text="BUTTON2"
+			android:textSize="25sp" />
+	</TableRow>
+</TableLayout>
