@@ -64,12 +64,7 @@ fun DateScreen() {
 		}
 		Spacer(modifier = Modifier.size(20.dp))
 		Text(
-			text = buildAnnotatedString {
-				append("Selected Date: ")
-				withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-					append(selectedDate)
-				}
-			},
+			text = selectedDate,
 			fontSize = 30.sp
 		)
 	}
