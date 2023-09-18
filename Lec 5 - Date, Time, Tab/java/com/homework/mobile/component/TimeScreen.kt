@@ -64,12 +64,7 @@ fun TimeScreen() {
 		}
 		Spacer(modifier = Modifier.size(20.dp))
 		Text(
-			text = buildAnnotatedString {
-				append("Selected Time: ")
-				withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-					append(selectedTime)
-				}
-			},
+			text = selectedTime,
 			fontSize = 30.sp
 		)
 	}
