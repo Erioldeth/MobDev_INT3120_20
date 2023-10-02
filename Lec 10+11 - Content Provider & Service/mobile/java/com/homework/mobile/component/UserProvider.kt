@@ -1,6 +1,9 @@
 package com.homework.mobile.component
 
 import android.content.ContentProvider
+import android.content.ContentResolver.NOTIFY_DELETE
+import android.content.ContentResolver.NOTIFY_INSERT
+import android.content.ContentResolver.NOTIFY_UPDATE
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.UriMatcher
@@ -34,7 +37,7 @@ class UserProvider : ContentProvider() {
 				val dbWriter = dbHelper.writableDatabase
 				val id = dbWriter.insert(InfoDBHelper.TABLE_NAME, null, values)
 				if (id == -1L) throw SQLException("Failed to insert a row into $uri")
-				context!!.contentResolver.notifyChange(uri, null)
+				context!!.contentResolver.notifyChange(uri, null, NOTIFY_INSERT)
 				return ContentUris.withAppendedId(CONTENT_URI, id)
 			}
 
@@ -88,7 +91,7 @@ class UserProvider : ContentProvider() {
 			)
 
 			else       -> throw IllegalArgumentException("Update is not supported for $uri")
-		}.also { context!!.contentResolver.notifyChange(uri, null) }
+		}.also { context!!.contentResolver.notifyChange(uri, null, NOTIFY_UPDATE) }
 	}
 
 	override fun delete(
@@ -110,7 +113,7 @@ class UserProvider : ContentProvider() {
 			)
 
 			else       -> throw IllegalArgumentException("Delete is not supported for $uri")
-		}.also { context!!.contentResolver.notifyChange(uri, null) }
+		}.also { context!!.contentResolver.notifyChange(uri, null, NOTIFY_DELETE) }
 	}
 
 	override fun getType(uri: Uri): String {

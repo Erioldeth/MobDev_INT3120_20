@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -30,7 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.homework.mobilehelper.ui.theme.Purple40
+import com.homework.mobilehelper.ui.theme.Purple80
+import com.homework.mobilehelper.ui.theme.PurpleGrey80
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,15 +43,15 @@ fun UserList(onUserSelected: (UserData) -> Unit) {
 	val dataList = remember { mutableStateListOf<UserData>() }
 
 	LaunchedEffect(Unit) {
-		resolver
-			.query(
-				Info.CONTENT_URI, null,
-				null, null,
-				null
-			)
-			?.use {
-				while (it.moveToNext()) {
-					with(it) {
+		withContext(Dispatchers.IO) {
+			resolver
+				.query(
+					Info.CONTENT_URI, null,
+					null, null,
+					null
+				)
+				?.use {
+					while (it.moveToNext()) with(it) {
 						dataList.add(
 							UserData(
 								id = getLong(getColumnIndexOrThrow(Info.User.ID)),
@@ -58,7 +62,7 @@ fun UserList(onUserSelected: (UserData) -> Unit) {
 						)
 					}
 				}
-			}
+		}
 	}
 
 	Scaffold(
@@ -86,7 +90,10 @@ fun UserList(onUserSelected: (UserData) -> Unit) {
 							contentDescription = null
 						)
 					}
-				}
+				},
+				colors = TopAppBarDefaults.smallTopAppBarColors(
+					containerColor = PurpleGrey80
+				)
 			)
 		}
 	) { innerPadding ->
@@ -106,7 +113,7 @@ fun UserList(onUserSelected: (UserData) -> Unit) {
 					modifier = Modifier
 						.fillMaxWidth()
 						.background(
-							color = Purple40,
+							color = Purple80,
 							shape = RoundedCornerShape(16.dp)
 						)
 						.padding(16.dp),
