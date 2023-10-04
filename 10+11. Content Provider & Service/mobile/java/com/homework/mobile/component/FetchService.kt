@@ -2,12 +2,18 @@ package com.homework.mobile.component
 
 import android.app.Service
 import android.content.Intent
+import android.database.ContentObserver
+import android.net.Uri
 import android.os.Binder
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.compose.runtime.snapshots.SnapshotStateList
 
 class FetchService : Service() {
-	fun fetchData(dataList: SnapshotStateList<UserData>) {
+	private lateinit var observer: ContentObserver
+
+	fun fetch(dataList: SnapshotStateList<UserData>) {
 		dataList.clear()
 		contentResolver
 			.query(
@@ -27,6 +33,22 @@ class FetchService : Service() {
 					)
 				}
 			}
+	}
+
+	fun sync(dataList: SnapshotStateList<UserData>) {
+		observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+			override fun onChange(selfChange: Boolean, uri: Uri?, flags: Int) {
+				super.onChange(selfChange, uri)
+				fetch(dataList)
+			}
+		}
+
+		contentResolver.registerContentObserver(UserProvider.CONTENT_URI, true, observer)
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		contentResolver.unregisterContentObserver(observer)
 	}
 
 	private val binder = LocalBinder()

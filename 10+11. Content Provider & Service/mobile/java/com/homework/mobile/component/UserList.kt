@@ -19,18 +19,13 @@ import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,21 +39,20 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.homework.mobile.ui.theme.Purple80
-import com.homework.mobile.ui.theme.PurpleGrey80
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserList() {
 	val context = LocalContext.current
 	val dataList = remember { mutableStateListOf<UserData>() }
-	var reloadTrigger by remember { mutableStateOf(true) }
 
 	var fetchService by remember { mutableStateOf<FetchService?>(null) }
 	val connection = object : ServiceConnection {
 		override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
 			val binder = service as FetchService.LocalBinder
 			fetchService = binder.getService()
-			fetchService?.fetchData(dataList)
+			fetchService?.fetch(dataList)
+			fetchService?.sync(dataList)
 		}
 
 		override fun onServiceDisconnected(name: ComponentName?) {}
@@ -74,32 +68,7 @@ fun UserList() {
 		}
 	}
 
-	LaunchedEffect(reloadTrigger) {
-		fetchService?.fetchData(dataList)
-	}
-
 	Scaffold(
-		topBar = {
-			TopAppBar(
-				title = {
-					Text(
-						text = "User Info",
-						fontSize = 24.sp
-					)
-				},
-				actions = {
-					IconButton(onClick = { reloadTrigger = !reloadTrigger }) {
-						Icon(
-							imageVector = Icons.Rounded.Refresh,
-							contentDescription = null
-						)
-					}
-				},
-				colors = TopAppBarDefaults.smallTopAppBarColors(
-					containerColor = PurpleGrey80
-				)
-			)
-		},
 		floatingActionButton = {
 			FloatingActionButton(
 				onClick = {
