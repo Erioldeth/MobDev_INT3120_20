@@ -1,7 +1,10 @@
 package com.homework.mobile.component
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -41,39 +45,37 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.homework.mobile.ui.theme.Purple80
 import com.homework.mobile.ui.theme.PurpleGrey80
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserList() {
 	val context = LocalContext.current
-	val resolver = context.contentResolver
 	val dataList = remember { mutableStateListOf<UserData>() }
 	var reloadTrigger by remember { mutableStateOf(true) }
 
-	LaunchedEffect(reloadTrigger) {
-		dataList.clear()
-		withContext(Dispatchers.IO) {
-			resolver
-				.query(
-					UserProvider.CONTENT_URI, null,
-					null, null,
-					null
-				)
-				?.use {
-					while (it.moveToNext()) with(it) {
-						dataList.add(
-							UserData(
-								id = getLong(getColumnIndexOrThrow(InfoDBHelper.User.ID)),
-								name = getString(getColumnIndexOrThrow(InfoDBHelper.User.NAME)),
-								phone = getString(getColumnIndexOrThrow(InfoDBHelper.User.PHONE)),
-								email = getString(getColumnIndexOrThrow(InfoDBHelper.User.EMAIL)),
-							)
-						)
-					}
-				}
+	var fetchService by remember { mutableStateOf<FetchService?>(null) }
+	val connection = object : ServiceConnection {
+		override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+			val binder = service as FetchService.LocalBinder
+			fetchService = binder.getService()
+			fetchService?.fetchData(dataList)
 		}
+
+		override fun onServiceDisconnected(name: ComponentName?) {}
+	}
+
+	DisposableEffect(Unit) {
+		Intent(context, FetchService::class.java).let {
+			context.bindService(it, connection, Context.BIND_AUTO_CREATE)
+		}
+
+		onDispose {
+			context.unbindService(connection)
+		}
+	}
+
+	LaunchedEffect(reloadTrigger) {
+		fetchService?.fetchData(dataList)
 	}
 
 	Scaffold(
@@ -101,20 +103,15 @@ fun UserList() {
 		floatingActionButton = {
 			FloatingActionButton(
 				onClick = {
-					val sharedPreferences =
-						context.getSharedPreferences("Provider", Context.MODE_PRIVATE)
-
-					val isServiceStarted = sharedPreferences.getBoolean("isServiceStarted", false)
-
-					Intent(context, NotifierService::class.java).apply {
-						if (isServiceStarted) context.stopService(this)
-						else context.startService(this)
-
-						with(sharedPreferences.edit()) {
-							putBoolean("isServiceStarted", !isServiceStarted)
-							apply()
+					context
+						.getSharedPreferences("Provider", Context.MODE_PRIVATE)
+						.getBoolean("isServiceStarted", false)
+						.let { isStarted ->
+							Intent(context, NotifierService::class.java).let {
+								if (isStarted) context.stopService(it)
+								else context.startService(it)
+							}
 						}
-					}
 				}
 			) {
 				Icon(

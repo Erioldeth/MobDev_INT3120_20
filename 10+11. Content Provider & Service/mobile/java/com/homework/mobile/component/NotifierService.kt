@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.homework.mobile.R
 
@@ -66,11 +67,31 @@ class NotifierService : Service() {
 
 	override fun onCreate() {
 		super.onCreate()
+
+		getSharedPreferences("Provider", MODE_PRIVATE)
+			.edit()
+			.putBoolean("isServiceStarted", true)
+			.apply()
+
 		contentResolver.registerContentObserver(UserProvider.CONTENT_URI, true, observer)
+
+		Toast
+			.makeText(baseContext, "Starting notifier...", Toast.LENGTH_SHORT)
+			.show()
 	}
 
 	override fun onDestroy() {
 		super.onDestroy()
+
+		getSharedPreferences("Provider", MODE_PRIVATE)
+			.edit()
+			.putBoolean("isServiceStarted", false)
+			.apply()
+
 		contentResolver.unregisterContentObserver(observer)
+
+		Toast
+			.makeText(baseContext, "Stopping notifier...", Toast.LENGTH_SHORT)
+			.show()
 	}
 }
